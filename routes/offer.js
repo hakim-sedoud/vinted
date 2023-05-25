@@ -4,6 +4,7 @@ const base64 = require("crypto-js/enc-base64");
 const fileUpload = require("express-fileupload");
 const cloudinary = require("cloudinary").v2;
 const mongoose = require("mongoose");
+const multer = require("multer");
 
 //Mise en place du router express :
 const router = express.Router();
@@ -44,7 +45,7 @@ router.post(
         { Color: reqBody.color },
       ];
       // upload
-      const pictureToUpload = convertToBase64(req.files.picture);
+      //const pictureToUpload = convertToBase64(req.files.picture); // plus besoins pour l'upload multiple
       //condition
       if (req.body.title.length > 50) {
         return res
@@ -69,10 +70,25 @@ router.post(
         product_details: tab,
         owner: req.user,
       });
-      const resultPicture = await cloudinary.uploader.upload(pictureToUpload, {
-        folder: `vinted/offers/${newOffer._id}`, //  recuperer newOffer ID avant la sauvegarde de newOffer
+
+      // methode pour save 1 immage
+      // const resultPicture = await cloudinary.uploader.upload(pictureToUpload, {
+      //   folder: `vinted/offers/${newOffer._id}`, //  recuperer newOffer ID avant la sauvegarde de newOffer
+      // });
+
+      // methode pour save plusieurs immages
+      const pictureToUpload = req.files.map((file) => {
+        return cloudinary.uploader.upload(file.path, {
+          folder: `vinted/offers/${newOffer._id}`,
+        });
       });
-      newOffer.product_image = resultPicture;
+      const resultPicture = await Promise.all(pictureToUpload);
+      newOffer.product_image = resultPicture.map((result) => {
+        return {
+          public_id: result.public_id,
+          secure_url: result.secure_url,
+        };
+      });
       await newOffer.save();
       return res.status(200).json("Offre créé");
     } catch (error) {
