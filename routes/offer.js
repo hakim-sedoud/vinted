@@ -35,7 +35,7 @@ const fileUpload = multer();
 router.post(
   "/offer/publish",
   isAuthenticated,
-  fileUpload.array("file", 5),
+  fileUpload.array("picture", 5),
   async (req, res) => {
     try {
       const reqBody = req.body;
