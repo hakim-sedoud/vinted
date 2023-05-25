@@ -1,7 +1,7 @@
 //import des modules
 const express = require("express");
 const base64 = require("crypto-js/enc-base64");
-const fileUpload = require("express-fileupload");
+//const fileUpload = require("express-fileupload");
 const cloudinary = require("cloudinary").v2;
 const mongoose = require("mongoose");
 const multer = require("multer");
