@@ -30,9 +30,17 @@ const convertToBase64 = (file) => {
 };
 
 // test
-const storage = multer.diskStorage({
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
+// const storage = multer.diskStorage({
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + "-" + file.originalname);
+//   },
+// });
+
+//test 2
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "vinted/offers",
   },
 });
 
