@@ -29,11 +29,13 @@ const convertToBase64 = (file) => {
   return `data:${file.mimetype};base64,${file.data.toString("base64")}`;
 };
 
+// test
+const multiupload = multer();
 //ROUTE POUR PUBLIER UNE OFFRE
 router.post(
   "/offer/publish",
   isAuthenticated,
-  fileUpload.array("file"),
+  multiupload.array("file"),
   async (req, res) => {
     try {
       const reqBody = req.body;
