@@ -83,7 +83,7 @@ router.post(
         });
       });
       const resultPicture = await Promise.all(pictureToUpload);
-      newOffer.product_image = resultPicture.map((result) => {
+      newOffer.product_pictures = resultPicture.map((result) => {
         return {
           public_id: result.public_id,
           secure_url: result.secure_url,
