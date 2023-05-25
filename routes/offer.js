@@ -100,59 +100,67 @@ router.post(
 );
 
 //ROUTE POUR MODIFIER UNE OFFRE
-router.put("/offer/upload", isAuthenticated, fileUpload(), async (req, res) => {
-  try {
-    const offer = await Offer.findByIdAndUpdate(req.body.id);
-    console.log(offer);
-    //console.log(offer.product_details[0]);
+router.put(
+  "/offer/upload",
+  isAuthenticated,
+  fileUpload.array("file"),
+  async (req, res) => {
+    try {
+      const offer = await Offer.findByIdAndUpdate(req.body.id);
+      console.log(offer);
+      //console.log(offer.product_details[0]);
 
-    if (req.body.title) {
-      offer.product_name = req.body.title;
+      if (req.body.title) {
+        offer.product_name = req.body.title;
+      }
+      if (req.body.description) {
+        offer.product_description = req.body.description;
+      }
+      if (req.body.price) {
+        offer.product_price = req.body.price;
+      }
+      if (req.body.condition) {
+        offer.product_details[0].Condition = req.body.condition;
+      }
+      if (req.body.city) {
+        offer.product_details[1].City = req.body.city;
+      }
+      if (req.body.brand) {
+        offer.product_details[2].Brand = req.body.brand;
+      }
+      if (req.body.size) {
+        offer.product_details[3].Size = req.body.size;
+      }
+      if (req.body.color) {
+        offer.product_details[4].Color = req.body.color;
+      }
+      if (req.files.picture) {
+        const result = await cloudinary.uploader.destroy(
+          offer.product_image.public_id
+        );
+        const pictureToUpload = convertToBase64(req.files.picture);
+        const resultPicture = await cloudinary.uploader.upload(
+          pictureToUpload,
+          {
+            folder: `vinted/offers`, // comment recuperer newOffer ID avant declaration de newOffer
+          }
+        );
+        offer.product_image = resultPicture;
+      }
+      offer.markModified("product_details");
+      await offer.save();
+      return res.status(200).json({ message: "route UPLOAD" });
+    } catch (error) {
+      return res.status(400).json({ message: error.message });
     }
-    if (req.body.description) {
-      offer.product_description = req.body.description;
-    }
-    if (req.body.price) {
-      offer.product_price = req.body.price;
-    }
-    if (req.body.condition) {
-      offer.product_details[0].Condition = req.body.condition;
-    }
-    if (req.body.city) {
-      offer.product_details[1].City = req.body.city;
-    }
-    if (req.body.brand) {
-      offer.product_details[2].Brand = req.body.brand;
-    }
-    if (req.body.size) {
-      offer.product_details[3].Size = req.body.size;
-    }
-    if (req.body.color) {
-      offer.product_details[4].Color = req.body.color;
-    }
-    if (req.files.picture) {
-      const result = await cloudinary.uploader.destroy(
-        offer.product_image.public_id
-      );
-      const pictureToUpload = convertToBase64(req.files.picture);
-      const resultPicture = await cloudinary.uploader.upload(pictureToUpload, {
-        folder: `vinted/offers`, // comment recuperer newOffer ID avant declaration de newOffer
-      });
-      offer.product_image = resultPicture;
-    }
-    offer.markModified("product_details");
-    await offer.save();
-    return res.status(200).json({ message: "route UPLOAD" });
-  } catch (error) {
-    return res.status(400).json({ message: error.message });
   }
-});
+);
 
 //ROUTE POUR SUP UNE OFFRE
 router.delete(
   "/offer/delete",
   isAuthenticated,
-  fileUpload(),
+  fileUpload.array("file"),
   async (req, res) => {
     try {
       const sentToken = req.headers.authorization.replace("Bearer ", "");
