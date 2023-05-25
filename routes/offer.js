@@ -30,12 +30,12 @@ const convertToBase64 = (file) => {
 };
 
 // test
-const multiupload = multer();
+const fileUpload = multer();
 //ROUTE POUR PUBLIER UNE OFFRE
 router.post(
   "/offer/publish",
   isAuthenticated,
-  multiupload.array("file"),
+  fileUpload.array("file"),
   async (req, res) => {
     try {
       const reqBody = req.body;
