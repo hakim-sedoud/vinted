@@ -33,7 +33,7 @@ const convertToBase64 = (file) => {
 router.post(
   "/offer/publish",
   isAuthenticated,
-  fileUpload(),
+  fileUpload.array(),
   async (req, res) => {
     try {
       const reqBody = req.body;
