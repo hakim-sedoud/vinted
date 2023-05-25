@@ -4,7 +4,6 @@ const base64 = require("crypto-js/enc-base64");
 const fileUpload = require("express-fileupload");
 const cloudinary = require("cloudinary").v2;
 const mongoose = require("mongoose");
-const multer = require("multer");
 
 //Mise en place du router express :
 const router = express.Router();
@@ -13,7 +12,6 @@ const router = express.Router();
 router.use(express.json());
 
 //import des modèles nécessaires à la bonne exécution des routes :
-//const User = require("../models/User");
 const Offer = require("../models/Offer");
 const isAuthenticated = require("../middlewares/isAutentificated");
 
@@ -24,34 +22,18 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
-//convertir le Buffer en BASE 64
 const convertToBase64 = (file) => {
   return `data:${file.mimetype};base64,${file.data.toString("base64")}`;
 };
 
-// test
-// const storage = multer.diskStorage({
-//   filename: function (req, file, cb) {
-//     cb(null, Date.now() + "-" + file.originalname);
-//   },
-// });
-
-//test 2
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "vinted/offers",
-  },
-});
-
-const upload = multer({ storage: storage });
 //ROUTE POUR PUBLIER UNE OFFRE
 router.post(
   "/offer/publish",
   isAuthenticated,
-  upload.array("file"),
+  fileUpload(),
   async (req, res) => {
     try {
+      //convertir le Buffer en BASE 64
       const reqBody = req.body;
       const tab = [
         { Condition: reqBody.condition },
@@ -60,8 +42,7 @@ router.post(
         { Size: reqBody.size },
         { Color: reqBody.color },
       ];
-      // upload
-      //const pictureToUpload = convertToBase64(req.files.picture); // plus besoins pour l'upload multiple
+
       //condition
       if (req.body.title.length > 50) {
         return res
@@ -87,24 +68,29 @@ router.post(
         owner: req.user,
       });
 
-      // methode pour save 1 immage
-      // const resultPicture = await cloudinary.uploader.upload(pictureToUpload, {
-      //   folder: `vinted/offers/${newOffer._id}`, //  recuperer newOffer ID avant la sauvegarde de newOffer
-      // });
-
-      // methode pour save plusieurs immages
-      const pictureToUpload = req.files.map((file) => {
-        return cloudinary.uploader.upload(file.path, {
-          folder: `vinted/offers/${newOffer._id}`,
+      if (Array.isArray(req.files.picture)) {
+        // methode pour save plusieurs immages
+        for (let i = 0; i < req.files.picture.length; i++) {
+          const convertPicture = convertToBase64(req.files.picture[i]);
+          const resultPicture = await cloudinary.uploader.upload(
+            convertPicture,
+            {
+              folder: `vinted/offers/${newOffer._id}`,
+            }
+          );
+          newOffer.product_pictures.push({
+            public_id: resultPicture.public_id,
+            secure_url: resultPicture.secure_url,
+          });
+        }
+      } else {
+        //methode pour save 1 image
+        const convertPicture = convertToBase64(req.files.picture);
+        const resultPicture = await cloudinary.uploader.upload(convertPicture, {
+          folder: `vinted/offers/${newOffer._id}`, //  recuperer newOffer ID avant la sauvegarde de newOffer
         });
-      });
-      const resultPicture = await Promise.all(pictureToUpload);
-      newOffer.product_pictures = resultPicture.map((result) => {
-        return {
-          public_id: result.public_id,
-          secure_url: result.secure_url,
-        };
-      });
+        newOffer.product_image = resultPicture;
+      }
       await newOffer.save();
       return res.status(200).json("Offre créé");
     } catch (error) {
@@ -117,8 +103,6 @@ router.post(
 router.put("/offer/upload", isAuthenticated, fileUpload(), async (req, res) => {
   try {
     const offer = await Offer.findByIdAndUpdate(req.body.id);
-    console.log(offer);
-    //console.log(offer.product_details[0]);
 
     if (req.body.title) {
       offer.product_name = req.body.title;
@@ -170,8 +154,6 @@ router.delete(
   async (req, res) => {
     try {
       const sentToken = req.headers.authorization.replace("Bearer ", "");
-      console.log(sentToken);
-      console.log(req.user.token);
       if (req.user.token === sentToken) {
         const offer = await Offer.findByIdAndDelete(req.body.id);
         if (offer) {
@@ -211,7 +193,6 @@ router.get("/offers", async (req, res) => {
         $lte: req.query.priceMax,
       };
     }
-    console.log(filter);
     let page = req.query.page;
     const limit = 5;
     if (!page) {
@@ -224,7 +205,6 @@ router.get("/offers", async (req, res) => {
       .skip(skip)
       .sort({ product_price: filterPrice })
       .populate({ path: "owner", select: "acount" });
-    //console.log(offers);
     const count = await Offer.countDocuments(filter);
     return res.status(200).json({ count, offers });
   } catch (error) {
@@ -245,7 +225,6 @@ router.get("/offer/:id", async (req, res) => {
       owner: { account: offer.owner.account, _id: offer.owner._id },
       product_image: offer.product_image,
     };
-    console.log(orderOffer);
     return res.status(200).json(orderOffer);
   } catch (error) {
     return res.status(400).json({ message: error.message });
