@@ -1,6 +1,6 @@
 const User = require("../models/User");
 
-const isAuthenticated = async (req, res, next) => {
+const isAuthentificated = async (req, res, next) => {
   // Etape 1 : récupérer le token :
   // console.log(req.headers.authorization); // Bearer Y2rWpV_4n3PvO3gV
   // Etape 2 : retirer le "Bearer " devant celui-ci :
@@ -15,4 +15,4 @@ const isAuthenticated = async (req, res, next) => {
   }
 };
 
-module.exports = isAuthenticated;
+module.exports = isAuthentificated;
