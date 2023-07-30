@@ -17,8 +17,9 @@ mongoose.connect(process.env.MONGODB_URI);
 // import des routes user :
 const userRoutes = require("./routes/user");
 const offerRoutes = require("./routes/offer");
+const paymentRoute = require("./routes/payment");
 // utilisation de ces routes par app :
-app.use(userRoutes, offerRoutes);
+app.use(userRoutes, offerRoutes, paymentRoute);
 
 //GERE LES MAUVAISE ROUTE
 app.all("*", (req, res) => {
