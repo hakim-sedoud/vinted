@@ -212,7 +212,7 @@ router.get("/offers", async (req, res) => {
       .limit(limit)
       .skip(skip)
       .sort({ product_price: filterPrice })
-      .populate({ path: "owner", select: "acount" });
+      .populate({ path: "owner", select: "account" });
     const count = await Offer.countDocuments(filter);
     return res.status(200).json({ count, offers });
   } catch (error) {
