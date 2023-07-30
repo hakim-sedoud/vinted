@@ -230,7 +230,11 @@ router.get("/offer/:id", async (req, res) => {
       product_name: offer.product_name,
       product_description: offer.product_description,
       product_price: offer.product_price,
-      owner: { account: offer.owner.account, _id: offer.owner._id },
+      owner: {
+        account: offer.owner.account,
+        _id: offer.owner._id,
+        username: offer.owner.account.username,
+      },
       product_image: offer.product_image,
     };
     return res.status(200).json(orderOffer);
