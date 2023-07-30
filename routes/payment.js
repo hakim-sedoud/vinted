@@ -3,7 +3,7 @@ const router = express.Router();
 const stripe = require("../config/stripeConfig");
 const isAuthentificated = require("../middlewares/isAutentificated");
 
-router.post("/payment", isAuthentificated, async (req, res) => {
+router.post("/payment", async (req, res) => {
   try {
     const { token, title, amount } = req.body;
     const convertedAmount = Math.round(amount * 100);
