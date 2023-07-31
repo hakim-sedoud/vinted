@@ -92,7 +92,7 @@ router.post(
         newOffer.product_image = resultPicture;
       }
       await newOffer.save();
-      return res.status(200).json("Offre créé");
+      return res.status(200).json({ message: "Offre créé", _id: newOffer._id });
     } catch (error) {
       return res.status(400).json({ message: error.message });
     }

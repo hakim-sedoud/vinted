@@ -59,8 +59,14 @@ router.post("/user/signup", fileUpload(), async (req, res) => {
     }
     if (passwordIsGood(req.body.password)) {
       const salt = uid2(10);
-      // upload
-      const pictureToUpload = convertToBase64(req.files.picture);
+      // const pictureToUpload = convertToBase64(req.files.picture);
+      let pictureToUpload;
+
+      if (req.files && req.files.picture) {
+        pictureToUpload = convertToBase64(req.files.picture);
+      } else {
+        pictureToUpload = req.body.defaultAvatar;
+      }
 
       const newUser = new User({
         email: req.body.email,
@@ -72,10 +78,28 @@ router.post("/user/signup", fileUpload(), async (req, res) => {
         hash: SHA256(req.body.password + salt).toString(base64),
         salt: salt,
       });
-      const resultPicture = await cloudinary.uploader.upload(pictureToUpload, {
-        folder: `vinted/users/${newUser._id}`, // comment recuperer newOffer ID avant declaration de newOffer
-      });
-      newUser.account.avatar = resultPicture;
+      // const resultPicture = await cloudinary.uploader.upload(pictureToUpload, {
+      //   folder: `vinted/users/${newUser._id}`, // comment recuperer newOffer ID avant declaration de newOffer
+      // });
+      // newUser.account.avatar = resultPicture;
+
+      let resultPicture;
+      if (req.files && req.files.picture) {
+        const pictureToUpload = convertToBase64(req.files.picture);
+        resultPicture = await cloudinary.uploader.upload(pictureToUpload, {
+          folder: `vinted/users/${newUser._id}`,
+        });
+      } else if (req.body.defaultAvatar) {
+        resultPicture = { secure_url: req.body.defaultAvatar };
+      } else {
+        resultPicture = {
+          secure_url:
+            "https://res.cloudinary.com/duccldgqq/image/upload/v1690826428/vinted/users/q4res03le65xsctpnj5v.png",
+        };
+      }
+
+      newUser.account.avatar = resultPicture.secure_url;
+
       await newUser.save();
       return res.status(200).json(newUser);
     } else {
