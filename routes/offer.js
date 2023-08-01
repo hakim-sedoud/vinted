@@ -89,7 +89,7 @@ router.post(
         const resultPicture = await cloudinary.uploader.upload(convertPicture, {
           folder: `vinted/offers/${newOffer._id}`, //  recuperer newOffer ID avant la sauvegarde de newOffer
         });
-        newOffer.product_image = resultPicture;
+        newOffer.product_image = resultPicture; 
       }
       await newOffer.save();
       return res.status(200).json({ message: "Offre créé", _id: newOffer._id });
